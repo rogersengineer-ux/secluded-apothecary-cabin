@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Secluded Apothecary Cabin</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:      #1c120c;
+  --sienna:   #6B3F2A;
+  --amber:    #c07828;
+  --gold:     #d4a060;
+  --parch:    #f1e4c3;
+  --parch-dk: #cfbe91;
+  --near-blk: #050302;
+  --ff-title: 'Cinzel Decorative', serif;
+  --ff-quill: 'IM Fell English', serif;
+  --ff-body:  'EB Garamond', serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--near-blk);
+  font-family: var(--ff-body);
+  color: var(--parch);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Screens ────────────────────────────────────────────────── */
+.screen {
+  position: absolute; inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 2s ease;
+  z-index: 10;
+}
+.screen.active  { opacity: 1; pointer-events: auto; }
+.screen.fadeout { opacity: 0; pointer-events: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 1 — THE TRAIL
+   ══════════════════════════════════════════════════════════════ */
+#screen-trail {
+  background-image: url('images/trail.webp');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Vignette — heavy, all four edges, text must be legible */
+#screen-trail::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 75% 75% at 50% 50%, transparent 25%, rgba(3,1,0,0.78) 100%),
+    linear-gradient(180deg, rgba(2,0,0,0.55) 0%, transparent 22%, transparent 78%, rgba(2,0,0,0.65) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+.trail-content {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1;
+  justify-content: center;
+  padding: 3vh 0 1vh;
+  width: 100%;
+}
+
+/* Breathing circle — JS drives transform: scale() */
+#breath-circle {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(196,145,90,0.3);
+  background: radial-gradient(circle, rgba(196,120,30,0.07) 0%, transparent 70%);
+  box-shadow:
+    0 0 40px rgba(196,120,30,0.06),
+    inset 0 0 30px rgba(196,120,30,0.04);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 4s cubic-bezier(0.45, 0, 0.55, 1),
+              box-shadow 4s ease;
+  position: relative;
+}
+/* Outer ring */
+#breath-circle::before {
+  content: '';
+  position: absolute; inset: -20px;
+  border-radius: 50%;
+  border: 1px solid rgba(196,145,90,0.12);
+  transition: transform 4s cubic-bezier(0.45, 0, 0.55, 1);
+}
+/* Middle ring */
+#breath-circle::after {
+  content: '';
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(196,145,90,0.2);
+  transition: transform 4s cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+#breath-word {
+  font-family: var(--ff-quill);
+  font-style: italic;
+  font-size: 18px;
+  color: rgba(241,228,195,0.75);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 20px rgba(196,120,30,0.5), 0 2px 12px rgba(0,0,0,0.95);
+  position: relative; z-index: 1;
+  transition: opacity 2s ease;
+}
+
+.trail-subtitle {
+  font-family: var(--ff-quill);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: rgba(223,202,167,0.75);
+  text-align: center;
+  max-width: 340px;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.95), 0 0 22px rgba(0,0,0,0.8);
+  padding: 0 24px;
+  margin: 0;
+  margin-top: 44px;
+  line-height: 1.4;
+  opacity: 0;
+  animation: fadeInOnce 5s forwards 1.5s;
+}
+
+@keyframes fadeInOnce {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 0.8; transform: translateY(0); }
+}
+
+/* Duration + skip controls */
+.trail-controls {
+  position: relative; z-index: 2;
+  padding-bottom: 7vh;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+}
+.duration-selector { display: flex; gap: 14px; }
+.dur-btn {
+  background: transparent;
+  border: 1px solid rgba(223,202,167,0.2);
+  color: rgba(223,202,167,0.35);
+  font-family: var(--ff-quill);
+  font-style: italic;
+  font-size: 0.88rem;
+  padding: 5px 15px;
+  cursor: pointer;
+  transition: all 0.4s;
+  letter-spacing: 0.04em;
+}
+.dur-btn:hover  { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.65); }
+.dur-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(196,120,30,0.08); }
+
+#trail-timer {
+  font-family: var(--ff-quill);
+  font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(196,145,90,0.35);
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+  min-height: 18px;
+}
+
+#skip-btn {
+  background: rgba(8,5,3,0.5);
+  border: 1px solid rgba(196,145,90,0.15);
+  color: rgba(223,202,167,0.32);
+  font-family: var(--ff-quill);
+  font-style: italic;
+  font-size: 0.88rem;
+  padding: 9px 24px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.5s;
+}
+#skip-btn:hover { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.7); }
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 2 — THE CABIN DOOR
+   ══════════════════════════════════════════════════════════════ */
+#screen-door {
+  background: #040202;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.door-frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.door-img {
+  /* Full-bleed cover — fills viewport, door centered */
+  position: absolute; inset: 0;
+  width: 100vw; height: 100vh;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  animation: doorBreathe 8s ease-in-out infinite;
+}
+@keyframes doorBreathe {
+  0%, 100% { transform: scale(1.0); }
+  50%       { transform: scale(1.015); }
+}
+
+/* Dark vignette over door photo — keeps edges dark */
+.door-vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 60% 70% at 50% 50%, transparent 20%, rgba(3,1,0,0.80) 100%);
+  pointer-events: none; z-index: 2;
+}
+
+/* Amber under-door glow */
+.door-glow {
+  position: fixed;
+  bottom: 18%; left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, 50vw); height: 18px;
+  background: radial-gradient(ellipse at center, rgba(255,147,38,0.6) 0%, transparent 72%);
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  pointer-events: none; z-index: 3;
+  animation: glowPulse 3.8s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity: 0.9; transform: translateX(-50%) scaleX(1.12); }
+}
+
+.door-hint {
+  position: fixed;
+  bottom: 36px; left: 50%; transform: translateX(-50%);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(196,145,90,0);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 16px rgba(196,120,30,0.4), 0 2px 8px rgba(0,0,0,0.9);
+  pointer-events: none; z-index: 4;
+  animation: hintAppear 3s ease forwards 2.5s;
+  white-space: nowrap;
+}
+@keyframes hintAppear {
+  to { color: rgba(196,145,90,0.45); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 3 — THE CABIN (APOTHECARY)
+   ══════════════════════════════════════════════════════════════ */
+#screen-cabin {
+  background-image: url('images/cabin-wide.webp');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Cabin vignette */
+#screen-cabin::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3,1,0,0.42) 0%, transparent 20%, transparent 72%, rgba(3,1,0,0.65) 100%),
+    radial-gradient(ellipse 90% 85% at 50% 50%, transparent 42%, rgba(3,1,0,0.48) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+.cabin-stage {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* ── Fire (canvas) — contained within hearth wrapper ── */
+#fire-wrap {
+  position: absolute;
+  bottom: 21%;
+  right: 11%;
+  width: 130px; height: 180px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+#fire-canvas {
+  position: absolute;
+  left: 50%;
+  bottom: 22%;
+  transform: translateX(-50%);
+  width: 110px; height: 130px;
+  pointer-events: none; z-index: 3;
+  opacity: 0.88;
+  /* canvas auto-clips particles to its bounds */
+}
+#ember-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  width: 180px; height: 55px;
+  background: radial-gradient(ellipse 75% 65% at 50% 100%, rgba(220,95,15,0.5) 0%, transparent 80%);
+  filter: blur(14px);
+  pointer-events: none; z-index: 2;
+  animation: emberBreath 3.4s ease-in-out infinite;
+}
+@keyframes emberBreath {
+  0%,100% { opacity: 0.55; transform: scaleX(1); }
+  50%      { opacity: 0.9;  transform: scaleX(1.1); }
+}
+
+/* ── Top-right controls ── */
+.cabin-top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 14px 18px;
+  z-index: 12;
+}
+.cabin-btn-group { display: flex; gap: 12px; align-items: center; }
+
+.ghost-btn {
+  background: rgba(6,3,2,0.55);
+  border: 1px solid rgba(196,145,90,0.14);
+  color: rgba(223,202,167,0.38);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.45s;
+  white-space: nowrap;
+}
+.ghost-btn:hover { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.78); }
+
+@keyframes scrollPulse {
+  0%,100% { opacity: 0.55; } 50% { opacity: 1; }
+}
+
+/* ── Instrument bar ── */
+.instrument-bar {
+  position: absolute;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 6px; align-items: center;
+  z-index: 12;
+  background: rgba(4,2,1,0.42);
+  border: 1px solid rgba(196,145,90,0.08);
+  padding: 5px 8px;
+}
+.instr-btn {
+  background: none;
+  border: 1px solid rgba(196,145,90,0.18);
+  color: rgba(223,202,167,0.55);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.05rem;
+  padding: 11px 28px;
+  cursor: pointer;
+  transition: all 0.4s;
+  letter-spacing: 0.06em;
+}
+.instr-btn:hover { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.82); }
+.instr-btn.ringing {
+  color: rgba(220,180,100,0.92);
+  border-color: rgba(196,145,90,0.65);
+  animation: ringFlash 2s ease-out forwards;
+}
+@keyframes ringFlash {
+  from { color: rgba(240,200,100,0.95); }
+  to   { color: rgba(223,202,167,0.42); border-color: rgba(196,145,90,0.12); }
+}
+
+/* Sound ripple */
+.ripple {
+  position: fixed;
+  border: 1.5px solid rgba(196,145,90,0.55);
+  border-radius: 50%;
+  pointer-events: none; z-index: 999;
+  transform: translate(-50%,-50%) scale(0);
+  animation: rippleOut 2.2s cubic-bezier(0.1,0.8,0.25,1) forwards;
+}
+@keyframes rippleOut {
+  to { transform: translate(-50%,-50%) scale(80); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 4 — PREPARE (MORTAR & PESTLE)
+   ══════════════════════════════════════════════════════════════ */
+.prepare-bg {
+  position: absolute; inset: 0;
+  background-image: url('images/mortar-pestle.webp');
+  background-size: cover;
+  background-position: center;
+}
+.prepare-vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(3,1,0,0.72) 100%),
+    linear-gradient(180deg, rgba(3,1,0,0.5) 0%, transparent 18%, transparent 75%, rgba(3,1,0,0.6) 100%);
+  pointer-events: none; z-index: 1;
+}
+
+/* Back button */
+#prepare-back-btn {
+  position: absolute;
+  top: 14px; left: 18px;
+  z-index: 12;
+}
+
+/* ── Mortar prop — EXACT native ratio 1024/1536 ── */
+#mortar-wrap {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, 55vw);
+  aspect-ratio: 1024 / 1536;
+  max-height: 80vh;
+  z-index: 4;
+}
+@media (max-height: 680px) { #mortar-wrap { width: min(220px, 44vw); } }
+@media (max-width: 480px)  { #mortar-wrap { width: min(260px, 76vw); bottom: 3%; } }
+
+#mortar-bg {
+  position: absolute; inset: 0;
+  background-image: url('images/mortar-pestle.webp');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Glow inside mortar bowl */
+#mortar-glow {
+  position: absolute;
+  top: 27%; left: 18%; right: 18%; height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 70% 80% at 50% 55%, rgba(140,200,80,0) 0%, transparent 80%);
+  filter: blur(10px);
+  pointer-events: none; z-index: 5;
+  transition: background 1.4s ease, opacity 1.2s ease;
+  opacity: 0;
+}
+
+/* Interactive zone for circular drag-blend */
+#mortar-blend-zone {
+  position: absolute;
+  top: 40%; left: 17%; width: 66%; height: 34%;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 8;
+  touch-action: none;
+}
+
+/* Particle + drift canvas */
+#mortar-canvas {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 6;
+}
+
+/* Drift text lands from above */
+.drifting-ingredient {
+  position: fixed;
+  font-family: var(--ff-quill);
+  font-style: italic;
+  color: rgba(220,190,100,0.9);
+  font-size: clamp(14px, 2.2vw, 20px);
+  pointer-events: none; z-index: 20;
+  text-shadow: 0 0 12px rgba(196,120,30,0.6), 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* Potion reveal — above mortar */
+#potion-reveal-wrap {
+  position: absolute;
+  top: -100px; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none; z-index: 9;
+  white-space: nowrap;
+}
+#potion-title {
+  font-family: var(--ff-title);
+  font-size: clamp(16px, 2.8vw, 26px);
+  color: var(--parch);
+  text-shadow: 0 0 18px rgba(255,147,38,0.7), 0 2px 6px rgba(0,0,0,0.95);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 2.5s ease, transform 2.5s cubic-bezier(0.33,1,0.68,1);
+  letter-spacing: 0.06em;
+}
+#potion-title.visible {
+  opacity: 1; transform: scale(1);
+  animation: potionShimmer 4s ease-in-out infinite alternate;
+}
+#potion-sub {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: rgba(223,202,167,0.65);
+  margin-top: 6px;
+  opacity: 0; transition: opacity 2s ease 1.2s;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.85);
+}
+#potion-sub.visible { opacity: 0.8; }
+@keyframes potionShimmer {
+  from { text-shadow: 0 0 15px rgba(255,147,38,0.55), 0 2px 5px rgba(0,0,0,0.9); }
+  to   { text-shadow: 0 0 30px rgba(255,147,38,0.92), 0 0 8px rgba(255,220,120,0.4), 0 2px 5px rgba(0,0,0,0.9); }
+}
+
+/* Rename hint */
+#rename-hint {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.75rem;
+  color: rgba(196,145,90,0.3);
+  margin-top: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0; transition: opacity 1s ease 3.5s, color 0.3s;
+}
+#rename-hint.visible { opacity: 1; }
+#rename-hint:hover { color: rgba(196,145,90,0.75); }
+
+/* Blend progress arc shown above mortar zone */
+#blend-arc-wrap {
+  position: absolute;
+  top: 30%; left: 50%;
+  transform: translateX(-50%);
+  width: 90px; height: 90px;
+  pointer-events: none; z-index: 7;
+  opacity: 0; transition: opacity 0.5s;
+}
+#blend-arc-wrap.visible { opacity: 1; }
+#blend-arc-svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+#blend-arc-path {
+  fill: none;
+  stroke: rgba(140,200,80,0.65);
+  stroke-width: 2.5;
+  stroke-dasharray: 226;
+  stroke-dashoffset: 226;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(140,200,80,0.7));
+  transition: stroke-dashoffset 0.08s linear;
+}
+
+/* Scroll trigger on prepare screen */
+#scroll-trigger {
+  position: absolute;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(196,145,90,0.35);
+  cursor: pointer;
+  background: rgba(8,5,3,0.5);
+  border: 1px solid rgba(196,145,90,0.15);
+  padding: 9px 24px;
+  letter-spacing: 0.05em;
+  transition: all 0.5s;
+  animation: scrollPulse 5s ease-in-out infinite;
+}
+#scroll-trigger:hover { color: rgba(196,145,90,0.75); animation: none; }
+
+/* Formula history — faded past workings line in scroll overlay */
+#formula-history {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.75rem;
+  color: rgba(80,52,18,0.35);
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCREEN 5 — QUIET EXIT
+   ══════════════════════════════════════════════════════════════ */
+#screen-exit {
+  background-image: url('images/trail.webp');
+  background-size: cover;
+  background-position: center;
+  z-index: 11;
+}
+#exit-darken {
+  position: absolute; inset: 0;
+  background: #050302;
+  opacity: 0;
+  transition: opacity 5s ease 1.2s;
+}
+#exit-darken.go { opacity: 1; }
+#exit-restart {
+  position: absolute;
+  bottom: 40px; left: 50%; transform: translateX(-50%);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(223,202,167,0);
+  cursor: pointer; background: none; border: none;
+  letter-spacing: 0.08em;
+  animation: exitHint 3s ease forwards 7s;
+  z-index: 2;
+}
+@keyframes exitHint {
+  to { color: rgba(223,202,167,0.3); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCROLL OVERLAY — aged parchment, CSS-only
+   ══════════════════════════════════════════════════════════════ */
+.overlay-bg {
+  position: fixed; inset: 0;
+  background: rgba(3,1,0,0.78);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.75s ease;
+  z-index: 50;
+  backdrop-filter: blur(2px);
+}
+.overlay-bg.open { opacity: 1; pointer-events: auto; }
+
+/* Parchment scroll body — unfurls vertically */
+.scroll-body {
+  position: relative;
+  width: min(460px, 92vw);
+  transform: scaleY(0.04) translateY(-40%);
+  transform-origin: top center;
+  transition: transform 0.72s cubic-bezier(0.34,1.56,0.64,1);
+}
+.overlay-bg.open .scroll-body {
+  transform: scaleY(1) translateY(0);
+}
+
+/* Scroll roll caps — top and bottom wooden bars */
+.scroll-cap {
+  height: 18px;
+  background: linear-gradient(180deg, #5a3c14 0%, #9a7040 30%, #7a5520 70%, #3e2508 100%);
+  border-radius: 3px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.55);
+  margin: 0 -8px;
+  position: relative; z-index: 2;
+}
+
+/* Parchment sheet */
+.scroll-parchment {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 48% 52%, #eeddb8 30%, #d8c48e 72%, #c8b07a 100%);
+  padding: 42px 40px 36px;
+  min-height: 180px;
+  position: relative;
+  border-left: 3px solid #9a7840;
+  border-right: 3px solid #9a7840;
+  box-shadow:
+    inset 0 0 30px rgba(54,36,15,0.35),
+    0 20px 60px rgba(0,0,0,0.85);
+}
+
+/* Worn corner, top right */
+.scroll-parchment::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 28px; height: 28px;
+  background: linear-gradient(225deg, rgba(80,52,18,0.35) 0%, rgba(120,88,32,0.12) 45%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Ruled lines */
+.scroll-rules {
+  position: absolute;
+  top: 55px; bottom: 44px; left: 28px; right: 28px;
+  background: repeating-linear-gradient(transparent, transparent 29px, rgba(80,52,18,0.09) 29px, rgba(80,52,18,0.09) 30px);
+  pointer-events: none;
+}
+
+.scroll-inner { position: relative; z-index: 2; }
+
+.scroll-heading {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.85rem;
+  color: rgba(28,18,12,0.78);
+  text-align: center;
+  letter-spacing: 0.06em;
+  margin-bottom: 22px;
+  border-bottom: 1px solid rgba(80,52,18,0.2);
+  padding-bottom: 12px;
+}
+
+.ing-list {
+  list-style: none;
+  max-height: 230px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(80,52,18,0.2) transparent;
+  margin-bottom: 14px;
+}
+.ing-list::-webkit-scrollbar { width: 4px; }
+.ing-list::-webkit-scrollbar-thumb { background: rgba(80,52,18,0.22); border-radius: 2px; }
+
+.ing-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 6px;
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.25rem;
+  color: rgba(28,18,12,0.7);
+  border-bottom: 1px dashed rgba(80,52,18,0.1);
+  cursor: pointer;
+  transition: all 0.28s;
+}
+.ing-row:hover { background: rgba(80,52,18,0.05); color: rgba(28,18,12,0.95); }
+.ing-row.selected {
+  color: rgba(120,58,8,0.95);
+  background: rgba(196,120,30,0.1);
+  border-bottom-color: rgba(196,120,30,0.28);
+  font-weight: 500;
+}
+.ing-row.fav .ing-name { color: rgba(192,120,40,0.92); }
+.ing-check {
+  width: 16px; height: 16px;
+  border: 1px solid rgba(80,52,18,0.22);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  color: rgba(80,52,18,0.5);
+  flex-shrink: 0; margin-right: 10px;
+  transition: all 0.28s;
+}
+.ing-row.selected .ing-check { background: rgba(196,120,30,0.25); border-color: rgba(80,52,18,0.55); }
+.ing-name { flex: 1; }
+.ing-fav {
+  font-size: 0.95rem;
+  color: rgba(80,52,18,0.28);
+  cursor: pointer; padding: 2px 6px;
+  background: none; border: none;
+  transition: color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+.ing-fav:hover { color: rgba(196,120,30,0.75); transform: scale(1.15); }
+.ing-row.fav .ing-fav { color: var(--amber); }
+.ing-remove {
+  font-size: 0.78rem;
+  color: rgba(80,52,18,0.22);
+  cursor: pointer; padding: 2px 6px;
+  background: none; border: none;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.ing-remove:hover { color: rgba(160,40,20,0.65); }
+
+#scroll-select-note {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.82rem;
+  color: rgba(80,52,18,0.45);
+  text-align: center;
+  margin-bottom: 14px;
+  min-height: 18px;
+}
+
+.scroll-add-row {
+  display: flex; gap: 10px; align-items: center;
+  border-top: 1px solid rgba(80,52,18,0.16);
+  padding-top: 14px;
+  margin-bottom: 16px;
+}
+.scroll-add-row input {
+  flex: 1;
+  background: transparent; border: none;
+  border-bottom: 1px dashed rgba(80,52,18,0.32);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.1rem;
+  color: rgba(28,18,12,0.82);
+  padding: 4px 2px; outline: none;
+  caret-color: rgba(80,52,18,0.8);
+  user-select: text; pointer-events: all;
+}
+.scroll-add-row input::placeholder { color: rgba(80,52,18,0.3); font-style: italic; }
+.scroll-add-row button {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.88rem;
+  color: rgba(28,18,12,0.5);
+  background: none; border: 1px solid rgba(80,52,18,0.24);
+  padding: 5px 12px; cursor: pointer; transition: all 0.25s;
+}
+.scroll-add-row button:hover { color: rgba(28,18,12,0.9); background: rgba(80,52,18,0.06); }
+
+.scroll-actions {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.scroll-act-btn {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.92rem;
+  color: rgba(28,18,12,0.45);
+  background: none; border: none;
+  cursor: pointer; letter-spacing: 0.04em;
+  transition: color 0.25s;
+}
+.scroll-act-btn:hover { color: rgba(28,18,12,0.85); }
+.scroll-act-btn.primary {
+  background: rgba(28,18,12,0.88);
+  color: rgba(241,228,195,0.9);
+  border: none;
+  padding: 9px 22px;
+  font-size: 0.88rem;
+}
+.scroll-act-btn.primary:hover { background: rgba(28,18,12,1); }
+
+/* ══════════════════════════════════════════════════════════════
+   JOURNAL OVERLAY
+   ══════════════════════════════════════════════════════════════ */
+.journal-book-wrap {
+  background: #2a1508;
+  border: 8px solid #1a0d04;
+  border-radius: 2px 4px 4px 2px;
+  width: min(700px, 96vw);
+  max-height: 82vh;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.92);
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+.j-page {
+  flex: 1;
+  background: radial-gradient(circle at 50% 40%, #faf3e0 25%, #e8d4aa 78%, #d9c29a 100%);
+  color: #1c120c;
+  padding: 32px 30px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+.j-page::-webkit-scrollbar { display: none; }
+.j-page::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+.j-page-left  { border-right: 2px solid rgba(0,0,0,0.16); box-shadow: inset -14px 0 24px rgba(0,0,0,0.07); }
+.j-page-right { box-shadow: inset 14px 0 24px rgba(0,0,0,0.06); }
+.j-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; }
+.j-title {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.5rem;
+  color: rgba(28,18,12,0.72);
+  margin-bottom: 20px;
+  border-bottom: 1px dashed rgba(0,0,0,0.14);
+  padding-bottom: 8px;
+}
+.j-entry {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  border-bottom: 1px dashed rgba(0,0,0,0.07);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+.j-entry-date  { font-size: 0.75rem; opacity: 0.52; margin-bottom: 3px; }
+.j-entry-title { font-family: var(--ff-quill); font-style: italic; font-size: 1.05rem; color: #3d2208; font-weight: 600; margin-bottom: 2px; }
+.j-entry-potion { font-family: var(--ff-quill); font-style: italic; font-size: 1.1rem; color: #7a4209; margin-bottom: 3px; font-weight: 600; }
+.j-entry-ings  { font-size: 0.82rem; opacity: 0.62; margin-bottom: 2px; }
+.j-entry-ctx   { font-style: italic; opacity: 0.75; }
+.j-empty {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.05rem; color: rgba(28,18,12,0.35);
+  text-align: center; padding: 30px 0;
+}
+/* Right journal page — new entry */
+.j-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+.j-formula-display {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.15rem; color: #5a3511;
+  margin-bottom: 16px; min-height: 24px;
+}
+.j-textarea {
+  width: 100%; flex: 1;
+  background: transparent;
+  border: 1px dashed rgba(40,25,12,0.22);
+  font-family: var(--ff-quill); font-size: 1.05rem;
+  color: #1c120c; padding: 10px; resize: none; outline: none;
+  line-height: 1.5;
+  user-select: text; pointer-events: all;
+}
+.j-textarea::placeholder { color: rgba(28,18,12,0.28); font-style: italic; }
+.j-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed rgba(40,25,12,0.25);
+  font-family: var(--ff-quill); font-style: italic; font-size: 1.08rem;
+  color: #1c120c; padding: 5px 0 7px;
+  outline: none; margin-bottom: 14px;
+  user-select: text; pointer-events: all;
+}
+.j-input::placeholder { color: rgba(28,18,12,0.28); }
+.j-save-btn {
+  background: rgba(28,18,12,0.85);
+  color: var(--parch);
+  border: none;
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.95rem;
+  padding: 11px;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.3s;
+}
+.j-save-btn:hover { background: rgba(28,18,12,1); }
+.j-close {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.78rem;
+  color: rgba(80,52,18,0.42);
+  cursor: pointer; background: none; border: none;
+  margin-top: 10px; text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.25s;
+}
+.j-close:hover { color: rgba(80,52,18,0.8); }
+
+/* ══════════════════════════════════════════════════════════════
+   RENAME MODAL
+   ══════════════════════════════════════════════════════════════ */
+#rename-overlay {
+  position: fixed; inset: 0;
+  z-index: 200;
+  background: rgba(3,1,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.5s;
+  backdrop-filter: blur(3px);
+}
+#rename-overlay.open { opacity: 1; pointer-events: all; }
+.rename-box {
+  background: radial-gradient(circle at 48% 45%, #eeddb8 30%, #d8c48e 80%);
+  padding: 32px 36px;
+  box-shadow: 0 12px 60px rgba(0,0,0,0.88), inset 0 0 20px rgba(80,52,18,0.1);
+  text-align: center; min-width: 280px;
+  border: 1px solid rgba(80,52,18,0.22);
+}
+.rename-label {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.9rem;
+  color: rgba(28,18,12,0.6);
+  display: block; margin-bottom: 14px;
+}
+.rename-input {
+  background: transparent; border: none;
+  border-bottom: 1px solid rgba(80,52,18,0.45);
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 1.5rem;
+  color: rgba(28,18,12,0.92);
+  text-align: center; padding: 6px 4px;
+  outline: none; width: 100%;
+  caret-color: rgba(80,52,18,0.9);
+  user-select: text; pointer-events: all;
+}
+.rename-actions {
+  display: flex; justify-content: center; gap: 24px;
+  margin-top: 18px;
+}
+.rename-btn {
+  font-family: var(--ff-quill); font-style: italic;
+  font-size: 0.95rem;
+  color: rgba(28,18,12,0.5);
+  background: none; border: none; cursor: pointer;
+  transition: color 0.25s;
+}
+.rename-btn:hover { color: rgba(28,18,12,0.92); }
+
+/* ── Fullscreen button ── */
+#fullscreen-btn {
+  position: fixed;
+  bottom: 14px; right: 14px;
+  z-index: 999;
+  background: rgba(6,3,2,0.55);
+  border: 1px solid rgba(196,145,90,0.15);
+  color: rgba(196,145,90,0.42);
+  font-size: 1rem; line-height: 1;
+  width: 34px; height: 34px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 2px;
+  transition: all 0.35s;
+  padding: 0;
+}
+#fullscreen-btn:hover { color: rgba(196,145,90,0.88); border-color: rgba(196,145,90,0.48); }
+
+/* ── Film grain always on top ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1000;
+}
+
+/* App fade-in on load */
+body { animation: appBoot 1.8s ease; }
+@keyframes appBoot { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 480px) {
+  .instrument-bar { bottom: 10px; gap: 2px; }
+  .instr-btn { padding: 12px 24px; font-size: 0.92rem; }
+  .j-page { padding: 22px 18px; }
+  .j-title { font-size: 1.2rem; }
+  .journal-book-wrap { flex-direction: column; max-height: 88vh; }
+  .j-page-left { border-right: none; border-bottom: 2px solid rgba(0,0,0,0.16); max-height: 40vh; }
+  /* Cabin top bar: two groups stacked centred on narrow screens */
+  .cabin-top-bar { padding: 8px 12px; flex-direction: column; align-items: center; gap: 8px; }
+  .cabin-btn-group { gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .ghost-btn { font-size: 0.82rem; padding: 9px 14px; }
+}
+
+/* ── Mobile portrait: use dedicated portrait background ── */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Fire: reposition wrapper to align with hearth in portrait image */
+  #fire-wrap {
+    bottom: 54%;
+    right: 6%;
+    width: 78px; height: 90px;
+  }
+  #screen-cabin {
+    background-image: url('images/cabin-portrait.webp');
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: THE TRAIL -->
+<div id="screen-trail" class="screen active">
+  <div class="trail-content">
+    <div id="breath-circle"><span id="breath-word">Breathe</span></div>
+    <p class="trail-subtitle" id="trail-sub">Follow the trail. The cabin is near.</p>
+  </div>
+  <div class="trail-controls">
+    <div class="duration-selector">
+      <button class="dur-btn" data-sec="30">30 s</button>
+      <button class="dur-btn active" data-sec="60">1 min</button>
+      <button class="dur-btn" data-sec="120">2 min</button>
+    </div>
+    <div id="trail-timer"></div>
+    <button id="skip-btn">enter the cabin</button>
+  </div>
+</div>
+
+<!-- SCREEN 2: THE DOOR -->
+<div id="screen-door" class="screen">
+  <img class="door-img" src="images/Cabin-door.webp" alt="">
+  <div class="door-vignette"></div>
+  <div class="door-glow"></div>
+  <div class="door-hint">step across the threshold</div>
+</div>
+
+<!-- SCREEN 3: THE CABIN -->
+<div id="screen-cabin" class="screen">
+  <div class="cabin-stage">
+
+    <!-- Fire -->
+    <div id="fire-wrap">
+      <canvas id="fire-canvas"></canvas>
+      <div id="ember-glow"></div>
+    </div>
+
+    <!-- FUTURE v3: weather canvas layer (rain, snow, moonlight) goes here, z-index 4 -->
+
+    <!-- Top controls -->
+    <div class="cabin-top-bar">
+      <div class="cabin-btn-group">
+        <button class="ghost-btn" id="sound-btn">♪ sound</button>
+        <button class="ghost-btn" id="fire-btn">feed the fire</button>
+      </div>
+      <div class="cabin-btn-group">
+        <button class="ghost-btn" id="prepare-btn">prepare</button>
+        <button class="ghost-btn" id="journal-btn">journal</button>
+        <button class="ghost-btn" id="leave-btn">leave the cabin</button>
+      </div>
+    </div>
+
+    <!-- Instruments -->
+    <div class="instrument-bar">
+      <button class="instr-btn" data-inst="bowl">singing bowl</button>
+      <button class="instr-btn" data-inst="koshi">koshi chimes</button>
+      <button class="instr-btn" data-inst="tingsha">tingsha</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCREEN 4: PREPARE — MORTAR & PESTLE -->
+<div id="screen-prepare" class="screen">
+
+  <!-- Full-bleed background -->
+  <div class="prepare-bg"></div>
+  <div class="prepare-vignette"></div>
+
+  <!-- Back button -->
+  <button class="ghost-btn" id="prepare-back-btn">← back to cabin</button>
+
+  <!-- Mortar stage -->
+  <div id="mortar-wrap">
+    <div id="mortar-bg"></div>
+    <div id="mortar-glow"></div>
+    <canvas id="mortar-canvas"></canvas>
+    <div id="mortar-blend-zone"></div>
+    <div id="blend-arc-wrap">
+      <svg id="blend-arc-svg" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="36"
+          fill="none"
+          stroke="rgba(140,200,80,0.65)"
+          stroke-width="2.5"
+          stroke-dasharray="226"
+          stroke-dashoffset="226"
+          stroke-linecap="round"
+          id="blend-arc-path"
+          filter="drop-shadow(0 0 4px rgba(140,200,80,0.7))"
+          style="transition: stroke-dashoffset 0.08s linear; transform: rotate(-90deg); transform-origin: 45px 45px;"
+        />
+      </svg>
+    </div>
+    <div id="potion-reveal-wrap">
+      <div id="potion-title"></div>
+      <div id="potion-sub"></div>
+      <div id="rename-hint">rename this intention</div>
+    </div>
+  </div>
+
+  <!-- Scroll trigger -->
+  <button id="scroll-trigger">unfurl the scroll</button>
+
+</div>
+
+<!-- SCREEN 5: EXIT / QUIET TRAIL -->
+<div id="screen-exit" class="screen">
+  <div id="exit-darken"></div>
+  <button id="exit-restart">begin again</button>
+</div>
+
+<!-- SCROLL OVERLAY -->
+<div class="overlay-bg" id="scroll-overlay">
+  <div class="scroll-body">
+    <div class="scroll-cap"></div>
+    <div class="scroll-parchment">
+      <div class="scroll-rules"></div>
+      <div class="scroll-inner">
+        <div class="scroll-heading">the apothecary</div>
+        <ul class="ing-list" id="ing-list"></ul>
+        <div id="scroll-select-note">choose one or two</div>
+        <div class="scroll-add-row">
+          <input type="text" id="add-ing-input" placeholder="add an ingredient…" autocomplete="off" spellcheck="false">
+          <button id="add-ing-btn">add</button>
+        </div>
+        <div class="scroll-actions">
+          <button class="scroll-act-btn" id="scroll-close-btn">close</button>
+          <button class="scroll-act-btn primary" id="scroll-gather-btn">gather into the mortar</button>
+        </div>
+        <div id="formula-history"></div>
+      </div>
+    </div>
+    <div class="scroll-cap"></div>
+  </div>
+</div>
+
+<!-- JOURNAL OVERLAY -->
+<div class="overlay-bg" id="journal-overlay">
+  <div class="journal-book-wrap">
+    <div class="j-page j-page-left">
+      <div class="j-content">
+        <div class="j-title">past sessions</div>
+        <div id="j-history"></div>
+      </div>
+    </div>
+    <div class="j-page j-page-right">
+      <div class="j-content">
+        <div class="j-title">this session</div>
+        <label class="j-label">session title</label>
+        <input class="j-input" id="j-session-title" type="text" placeholder="name this session…" autocomplete="off" spellcheck="false">
+        <label class="j-label">active formula</label>
+        <div id="j-formula" class="j-formula-display">—</div>
+        <label class="j-label">what calls you here today?</label>
+        <textarea class="j-textarea" id="j-context" placeholder="a difficult meeting, a parenting moment, a challenge ahead…" rows="5"></textarea>
+        <button class="j-save-btn" id="j-save-btn">seal this reflection</button>
+        <button class="j-close" id="j-close-btn">close the journal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME MODAL -->
+<div id="rename-overlay">
+  <div class="rename-box">
+    <span class="rename-label">name this intention</span>
+    <input class="rename-input" id="rename-input" type="text" autocomplete="off" spellcheck="false">
+    <div class="rename-actions">
+      <button class="rename-btn" id="rename-cancel">nevermind</button>
+      <button class="rename-btn" id="rename-confirm">so be it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────────────────────────────
+   CONSTANTS
+   ─────────────────────────────────────────────────────────────────*/
+const DEFAULT_INGREDIENTS = [
+  'Patience','Strength','Calm','Courage','Focus',
+  'Clarity','Presence','Resolve','Stillness','Grace'
+];
+
+const COMBOS = {
+  'Patience+Strength':  'Enduring Will',
+  'Strength+Patience':  'Enduring Will',
+  'Calm+Courage':       'Steadfast',
+  'Courage+Calm':       'Steadfast',
+  'Strength+Focus':     'Iron Mind',
+  'Focus+Strength':     'Iron Mind',
+  'Clarity+Presence':   'Clear Sight',
+  'Presence+Clarity':   'Clear Sight',
+  'Patience+Focus':     'Still Waters',
+  'Focus+Patience':     'Still Waters',
+  'Calm+Clarity':       'Quiet Truth',
+  'Clarity+Calm':       'Quiet Truth',
+  'Courage+Resolve':    'Unbroken',
+  'Resolve+Courage':    'Unbroken',
+  'Patience+Calm':      'Deep Roots',
+  'Calm+Patience':      'Deep Roots',
+  'Focus+Clarity':      'Keen Edge',
+  'Clarity+Focus':      'Keen Edge',
+  'Strength+Courage':   'Fierce Light',
+  'Courage+Strength':   'Fierce Light',
+  'Presence+Resolve':   'Anchor Stone',
+  'Resolve+Presence':   'Anchor Stone',
+  'Stillness+Calm':     'The Quiet',
+  'Calm+Stillness':     'The Quiet',
+  'Grace+Presence':     'Sacred Poise',
+  'Presence+Grace':     'Sacred Poise',
+  'Resolve+Strength':   'Bedrock',
+  'Strength+Resolve':   'Bedrock',
+  'Stillness+Focus':    'Held Breath',
+  'Focus+Stillness':    'Held Breath',
+  'Patience+Clarity':   'Deep Water',
+  'Clarity+Patience':   'Deep Water',
+  'Presence+Calm':      'Still Center',
+  'Calm+Presence':      'Still Center',
+  'Strength+Grace':     'Noble Force',
+  'Grace+Strength':     'Noble Force',
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   STATE
+   ─────────────────────────────────────────────────────────────────*/
+const S = {
+  screen:         'trail',
+  breathDur:      60,
+  breathTimer:    null,
+  breathStart:    null,
+  tickInterval:   null,
+  soundOn:        true,
+  fireIntensity:  0.55,
+  ingredients:    [],
+  selected:       [],    // 0–2
+  ritualStep:     0,     // 0=idle 1=gathered 2=blending 3=revealed
+  blending:       false,
+  blendProgress:  0,
+  potionName:     '',
+  journal:        [],
+  favorites:      [],
+  formulaHistory: [],
+  audioCtx:       null,
+  ambientGain:    null,
+  blendToneOsc:   null,
+  blendToneGain:  null,
+  trailGain:      null,
+  trailCtx:       null,
+};
+
+/* ─────────────────────────────────────────────────────────────────
+   DOM
+   ─────────────────────────────────────────────────────────────────*/
+const $ = id => document.getElementById(id);
+
+/* ─────────────────────────────────────────────────────────────────
+   STORAGE
+   ─────────────────────────────────────────────────────────────────*/
+const LS_ING = 'sc3:ingredients';
+const LS_JRN = 'sc3:journal';
+const LS_FAV = 'sc3:favorites';
+const LS_HIST = 'sc3:history';
+
+function loadData() {
+  try { S.ingredients = JSON.parse(localStorage.getItem(LS_ING)) || [...DEFAULT_INGREDIENTS]; } catch { S.ingredients = [...DEFAULT_INGREDIENTS]; }
+  try { S.journal     = JSON.parse(localStorage.getItem(LS_JRN)) || []; } catch { S.journal = []; }
+  try { S.favorites   = JSON.parse(localStorage.getItem(LS_FAV)) || []; } catch { S.favorites = []; }
+  try { S.formulaHistory = JSON.parse(localStorage.getItem(LS_HIST)) || []; } catch { S.formulaHistory = []; }
+}
+const saveIng  = () => { try { localStorage.setItem(LS_ING, JSON.stringify(S.ingredients)); } catch {} };
+const saveJrn  = () => { try { localStorage.setItem(LS_JRN, JSON.stringify(S.journal));     } catch {} };
+const saveFav  = () => { try { localStorage.setItem(LS_FAV, JSON.stringify(S.favorites));   } catch {} };
+const saveHist = () => { try { localStorage.setItem(LS_HIST, JSON.stringify(S.formulaHistory)); } catch {} };
+
+/* ─────────────────────────────────────────────────────────────────
+   SCREEN TRANSITIONS
+   ─────────────────────────────────────────────────────────────────*/
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  const el = $(id);
+  if (el) { el.classList.add('active'); S.screen = id; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PHASE 1 — BREATHING (JS-driven, like Gemini's approach)
+   ─────────────────────────────────────────────────────────────────*/
+let breathPhase = 0; // 0=exhale(start) 1=inhale
+
+function initBreathing() {
+  // Duration buttons
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      S.breathDur = parseInt(btn.dataset.sec);
+      resetBreathCycle();
+    });
+  });
+  $('skip-btn').addEventListener('click', skipToADoor);
+  startBreathCycle();
+}
+
+function startBreathCycle() {
+  S.breathStart = Date.now();
+  runBreathLoop();
+  startBreathTick();
+}
+
+function resetBreathCycle() {
+  clearTimeout(S.breathTimer);
+  clearInterval(S.tickInterval);
+  startBreathCycle();
+}
+
+function runBreathLoop() {
+  if ($('screen-trail') && !$('screen-trail').classList.contains('active')) return;
+  const circle = $('breath-circle');
+  const word   = $('breath-word');
+  if (!circle) return;
+
+  if (breathPhase === 0) {
+    // INHALE — 4 seconds, expand
+    circle.style.transition = 'transform 4s cubic-bezier(0.45,0,0.55,1)';
+    circle.style.transform  = 'scale(1.45)';
+    circle.style.boxShadow  = '0 0 60px rgba(196,120,30,0.15), inset 0 0 40px rgba(196,120,30,0.08)';
+    word.textContent = 'Breathe';
+    word.style.opacity = '0.9';
+    breathPhase = 1;
+    S.breathTimer = setTimeout(runBreathLoop, 4000);
+  } else {
+    // EXHALE — 6 seconds, contract
+    circle.style.transition = 'transform 6s cubic-bezier(0.45,0,0.55,1)';
+    circle.style.transform  = 'scale(1.0)';
+    circle.style.boxShadow  = '0 0 40px rgba(196,120,30,0.06), inset 0 0 30px rgba(196,120,30,0.04)';
+    word.style.opacity = '0.6';
+    breathPhase = 0;
+    S.breathTimer = setTimeout(runBreathLoop, 6000);
+  }
+}
+
+function startBreathTick() {
+  S.tickInterval = setInterval(() => {
+    if (!$('screen-trail').classList.contains('active')) { clearInterval(S.tickInterval); return; }
+    const elapsed = (Date.now() - S.breathStart) / 1000;
+    const left = Math.max(0, S.breathDur - elapsed);
+    const m = Math.floor(left / 60), s = Math.floor(left % 60);
+    const timerEl = $('trail-timer');
+    if (timerEl) timerEl.textContent = m > 0 ? `${m}:${s.toString().padStart(2,'0')}` : `${s}`;
+    if (left <= 0) { clearInterval(S.tickInterval); skipToADoor(); }
+  }, 500);
+}
+
+function skipToADoor() {
+  clearTimeout(S.breathTimer);
+  clearInterval(S.tickInterval);
+  fadeTrailAudioOut();
+  goTo('screen-door');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PHASE — THE DOOR
+   ─────────────────────────────────────────────────────────────────*/
+function initDoor() {
+  $('screen-door').addEventListener('click', enterCabin);
+}
+
+function enterCabin() {
+  goTo('screen-cabin');
+  initCabin();
+  ensureAudio();
+  if (S.ambientGain) S.ambientGain.gain.setTargetAtTime(0.055, S.audioCtx.currentTime, 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PHASE 2 — THE CABIN
+   ─────────────────────────────────────────────────────────────────*/
+let cabinReady = false;
+let prepareReady = false;
+
+function initCabin() {
+  if (cabinReady) return;
+  cabinReady = true;
+  initFireCanvas();
+  initCabinControls();
+  renderJHistory();
+}
+
+function initPrepare() {
+  if (prepareReady) return;
+  prepareReady = true;
+  initMortarCanvas();
+  initPrepareControls();
+  renderIngList();
+  updateRitualStatus();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FIRE — canvas particle system (Quill approach)
+   ─────────────────────────────────────────────────────────────────*/
+let fireCtx = null, fireParticles = [], fireRafId = null;
+
+function initFireCanvas() {
+  const canvas = $('fire-canvas');
+  if (!canvas) return;
+  fireCtx = canvas.getContext('2d');
+
+  function resizeFire() {
+    const dpr = window.devicePixelRatio || 1;
+    const r = canvas.getBoundingClientRect();
+    canvas.width  = Math.round(r.width  * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    fireCtx.scale(dpr, dpr);
+  }
+  resizeFire();
+  window.addEventListener('resize', resizeFire);
+
+  for (let i = 0; i < 38; i++) spawnFire(true);
+  renderFireLoop();
+}
+
+function spawnFire(scatter) {
+  const canvas = $('fire-canvas');
+  if (!canvas) return;
+  const r = canvas.getBoundingClientRect();
+  const W = r.width, H = r.height;
+  const life = 50 + Math.random() * 75;
+  fireParticles.push({
+    x:       W * 0.5 + (Math.random() - 0.5) * W * 0.55,
+    y:       H * 0.88 + (scatter ? (Math.random() - 0.5) * H * 0.18 : 0),
+    vx:      (Math.random() - 0.5) * 0.45,
+    vy:      -(0.45 + Math.random() * 0.9) * (0.55 + S.fireIntensity * 0.45),
+    life:    scatter ? Math.random() * life : 0,
+    lifeMax: life,
+    size:    2.5 + Math.random() * 5,
+    hue:     14 + Math.random() * 24,
+  });
+}
+
+function renderFireLoop() {
+  const canvas = $('fire-canvas');
+  if (!canvas || !fireCtx) return;
+  const r = canvas.getBoundingClientRect();
+  const W = r.width, H = r.height;
+  fireCtx.clearRect(0, 0, W, H);
+
+  const rate = 1 + Math.floor(S.fireIntensity * 3.5);
+  for (let i = 0; i < rate; i++) spawnFire(false);
+
+  for (let i = fireParticles.length - 1; i >= 0; i--) {
+    const p = fireParticles[i];
+    p.life++;
+    if (p.life >= p.lifeMax) { fireParticles.splice(i, 1); continue; }
+    const prog = p.life / p.lifeMax;
+    p.x += p.vx + Math.sin(p.life * 0.18) * 0.38;
+    p.y += p.vy;
+    p.vy *= 0.993; p.vx *= 0.98;
+
+    let a, h, s, b;
+    if (prog < 0.12)       { h=45; s=80; b=94; a=prog/0.12; }
+    else if (prog < 0.5)   { h=p.hue+20; s=95; b=65; a=0.82; }
+    else if (prog < 0.82)  { h=p.hue; s=88; b=40; a=0.82-(prog-0.5)*0.62; }
+    else                   { h=p.hue-8; s=70; b=28; a=Math.max(0,1-(prog-0.82)/0.18)*0.28; }
+
+    const rad = p.size * (1 - prog * 0.5);
+    const g = fireCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad * 2.5);
+    g.addColorStop(0,   `hsla(${h},${s}%,${b}%,${a})`);
+    g.addColorStop(0.5, `hsla(${h-10},${s-10}%,${b-12}%,${a*0.55})`);
+    g.addColorStop(1,   `hsla(${h-20},${s}%,${b-20}%,0)`);
+    fireCtx.beginPath();
+    fireCtx.arc(p.x, p.y, rad * 2.5, 0, Math.PI * 2);
+    fireCtx.fillStyle = g;
+    fireCtx.fill();
+  }
+  fireRafId = requestAnimationFrame(renderFireLoop);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MORTAR CANVAS — particles and blending
+   ─────────────────────────────────────────────────────────────────*/
+let mCtx = null, mParticles = [], mRafId = null;
+
+function initMortarCanvas() {
+  const canvas = $('mortar-canvas');
+  if (!canvas) return;
+  mCtx = canvas.getContext('2d');
+
+  function resizeMortar() {
+    const dpr = window.devicePixelRatio || 1;
+    const r = canvas.getBoundingClientRect();
+    canvas.width  = Math.round(r.width  * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    mCtx.scale(dpr, dpr);
+  }
+  resizeMortar();
+  window.addEventListener('resize', resizeMortar);
+  renderMortarLoop();
+}
+
+function spawnMortarParticle(color) {
+  const canvas = $('mortar-canvas');
+  if (!canvas || !mCtx) return;
+  const r = canvas.getBoundingClientRect();
+  const W = r.width, H = r.height;
+  // Bowl center is roughly 38–62% x, 38–55% y of mortar image
+  mParticles.push({
+    x:     W * (0.36 + Math.random() * 0.28),
+    y:     H * 0.50,
+    vx:    (Math.random() - 0.5) * 1.4,
+    vy:    -(0.6 + Math.random() * 1.8),
+    alpha: 0.75 + Math.random() * 0.25,
+    r:     1.2 + Math.random() * 3.5,
+    color: color || 'rgba(140,200,80,0.55)',
+    life:  50 + Math.random() * 50,
+  });
+}
+
+function renderMortarLoop() {
+  const canvas = $('mortar-canvas');
+  if (!canvas || !mCtx) return;
+  const r = canvas.getBoundingClientRect();
+  const W = r.width, H = r.height;
+  mCtx.clearRect(0, 0, W, H);
+
+  for (let i = mParticles.length - 1; i >= 0; i--) {
+    const p = mParticles[i];
+    p.x += p.vx + Math.sin(p.life * 0.15) * 0.3;
+    p.y += p.vy; p.vy *= 0.97;
+    p.alpha -= 0.013; p.life--;
+    if (p.life <= 0 || p.alpha <= 0) { mParticles.splice(i, 1); continue; }
+    mCtx.globalAlpha = Math.max(0, p.alpha);
+    mCtx.beginPath();
+    mCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    mCtx.fillStyle = p.color;
+    mCtx.fill();
+  }
+  mCtx.globalAlpha = 1;
+  mRafId = requestAnimationFrame(renderMortarLoop);
+}
+
+function burstParticles(count, color) {
+  for (let i = 0; i < count; i++) spawnMortarParticle(color);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CABIN CONTROLS
+   ─────────────────────────────────────────────────────────────────*/
+function initCabinControls() {
+  // Sound toggle
+  $('sound-btn').addEventListener('click', () => {
+    S.soundOn = !S.soundOn;
+    $('sound-btn').textContent = S.soundOn ? '♪ sound' : '♪ silence';
+    if (S.ambientGain && S.audioCtx) {
+      S.ambientGain.gain.setTargetAtTime(S.soundOn ? 0.055 : 0, S.audioCtx.currentTime, 0.6);
+    }
+  });
+
+  // Fire
+  $('fire-btn').addEventListener('click', () => {
+    S.fireIntensity = Math.min(1.0, S.fireIntensity + 0.22);
+    $('fire-btn').classList.add('ringing');
+    setTimeout(() => $('fire-btn').classList.remove('ringing'), 2200);
+    if (S.soundOn) playCrackle();
+    // Fade intensity back slowly
+    setTimeout(() => { S.fireIntensity = Math.max(0.55, S.fireIntensity - 0.22); }, 8000);
+  });
+
+  // Prepare
+  $('prepare-btn').addEventListener('click', () => {
+    goTo('screen-prepare');
+    initPrepare();
+  });
+
+  // Journal
+  $('journal-btn').addEventListener('click', openJournal);
+  $('j-close-btn').addEventListener('click', () => $('journal-overlay').classList.remove('open'));
+  $('j-save-btn').addEventListener('click', saveJournalEntry);
+
+  // Leave
+  $('leave-btn').addEventListener('click', leaveTheCabin);
+
+  // Scroll
+  $('scroll-close-btn').addEventListener('click', closeScroll);
+  $('scroll-gather-btn').addEventListener('click', gatherIngredients);
+  $('add-ing-btn').addEventListener('click', addIngredient);
+  $('add-ing-input').addEventListener('keydown', e => { if (e.key === 'Enter') addIngredient(); });
+
+  // Instruments
+  document.querySelectorAll('.instr-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      strikeInstrument(btn.dataset.inst, e.clientX, e.clientY);
+      btn.classList.remove('ringing');
+      void btn.offsetWidth;
+      btn.classList.add('ringing');
+    });
+  });
+
+  // Rename
+  $('rename-hint').addEventListener('click', openRename);
+  $('rename-confirm').addEventListener('click', confirmRename);
+  $('rename-cancel').addEventListener('click', () => $('rename-overlay').classList.remove('open'));
+  $('rename-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmRename();
+    if (e.key === 'Escape') $('rename-overlay').classList.remove('open');
+  });
+
+  // Exit restart — full reset
+  $('exit-restart').addEventListener('click', () => {
+    // Reset ritual state
+    S.ritualStep = 0; S.blendProgress = 0;
+    S.selected = []; S.potionName = '';
+    totalRotation = 0;
+
+    // Reset mortar DOM
+    const pt = $('potion-title'), ps = $('potion-sub');
+    const rh = $('rename-hint'), mg = $('mortar-glow'), ba = $('blend-arc-wrap');
+    if (pt) { pt.textContent = ''; pt.classList.remove('visible'); }
+    if (ps) { ps.textContent = ''; ps.classList.remove('visible'); }
+    if (rh) rh.classList.remove('visible');
+    if (mg) { mg.style.opacity = '0'; mg.style.background = ''; }
+    if (ba) { ba.classList.remove('visible'); updateBlendArc(0); }
+
+    // Cancel fire animation
+    if (fireRafId) { cancelAnimationFrame(fireRafId); fireRafId = null; }
+
+    // Reset cabin and prepare flags
+    cabinReady = false;
+    prepareReady = false;
+
+    // Reset exit overlay
+    $('exit-darken').classList.remove('go');
+
+    // Reset breath and return to trail
+    breathPhase = 0;
+    goTo('screen-trail');
+    resetBreathCycle();
+    fadeTrailAudioIn();
+    updateRitualStatus();
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PREPARE CONTROLS — circular mortar drag gesture
+   ─────────────────────────────────────────────────────────────────*/
+let blendActive = false;
+let lastAngle = null;
+let totalRotation = 0;
+const BLEND_ROTATIONS_NEEDED = 3; // 3 full circles = complete
+
+function getAngle(e, zone) {
+  const rect = zone.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const point = e.touches ? e.touches[0] : e;
+  return Math.atan2(point.clientY - cy, point.clientX - cx);
+}
+
+function initPrepareControls() {
+  $('scroll-trigger').addEventListener('click', openScroll);
+  $('prepare-back-btn').addEventListener('click', () => goTo('screen-cabin'));
+
+  const zone = $('mortar-blend-zone');
+
+  function startBlend(e) {
+    if (S.ritualStep !== 1) return;
+    e.preventDefault();
+    blendActive = true;
+    lastAngle = getAngle(e, zone);
+    totalRotation = 0;
+    $('blend-arc-wrap').classList.add('visible');
+    if (S.soundOn) startBlendTone();
+  }
+
+  function moveBlend(e) {
+    if (!blendActive || S.ritualStep !== 1) return;
+    e.preventDefault();
+    const angle = getAngle(e, zone);
+    let delta = angle - lastAngle;
+    if (delta > Math.PI)  delta -= 2 * Math.PI;
+    if (delta < -Math.PI) delta += 2 * Math.PI;
+    totalRotation += Math.abs(delta);
+    lastAngle = angle;
+
+    S.blendProgress = Math.min(1, totalRotation / (BLEND_ROTATIONS_NEEDED * 2 * Math.PI));
+    updateBlendArc(S.blendProgress);
+
+    $('mortar-glow').style.opacity = '1';
+    $('mortar-glow').style.background =
+      `radial-gradient(ellipse 70% 80% at 50% 55%, rgba(140,200,80,${S.blendProgress * 0.6}) 0%, transparent 80%)`;
+
+    if (Math.random() < 0.3) spawnMortarParticle('rgba(140,200,80,0.55)');
+
+    if (S.blendProgress >= 1) { stopBlend(); revealPotion(); }
+  }
+
+  function stopBlend() {
+    blendActive = false;
+    stopBlendTone();
+  }
+
+  if (zone) {
+    zone.addEventListener('mousedown',  startBlend);
+    zone.addEventListener('mousemove',  moveBlend);
+    zone.addEventListener('touchstart', startBlend, { passive: false });
+    zone.addEventListener('touchmove',  e => {
+      if (blendActive) moveBlend(e);
+    }, { passive: false });
+  }
+  window.addEventListener('mouseup',  stopBlend);
+  window.addEventListener('touchend', stopBlend);
+
+  // Rename
+  $('rename-hint').addEventListener('click', openRename);
+}
+
+function updateBlendArc(pct) {
+  const circumference = 2 * Math.PI * 36; // r=36
+  $('blend-arc-path').style.strokeDashoffset = circumference * (1 - pct);
+}
+
+function updateRitualStatus() {
+  const msgs = { 0:'', 1:'gather into the mortar — then grind', 2:'blending…', 3:'' };
+  const el = $('ritual-status');
+  if (el) el.textContent = msgs[S.ritualStep] ?? '';
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SCROLL / INGREDIENTS
+   ─────────────────────────────────────────────────────────────────*/
+function openScroll() {
+  renderIngList();
+  renderFormulaHistory();
+  $('scroll-overlay').classList.add('open');
+}
+function closeScroll() { $('scroll-overlay').classList.remove('open'); }
+
+function renderFormulaHistory() {
+  const el = $('formula-history');
+  if (!el) return;
+  if (!S.formulaHistory || S.formulaHistory.length === 0) { el.textContent = ''; return; }
+  el.textContent = 'past workings: ' + S.formulaHistory.join(' · ');
+}
+
+function renderIngList() {
+  const ul = $('ing-list');
+  ul.innerHTML = '';
+  const sorted = [...S.ingredients].sort((a, b) => {
+    const af = S.favorites.includes(a) ? 1 : 0;
+    const bf = S.favorites.includes(b) ? 1 : 0;
+    return bf - af;
+  });
+  sorted.forEach((ing) => {
+    const idx = S.ingredients.indexOf(ing);
+    const isSel = S.selected.includes(ing);
+    const isFav = S.favorites.includes(ing);
+    const li = document.createElement('li');
+    li.className = 'ing-row' + (isSel ? ' selected' : '') + (isFav ? ' fav' : '');
+    li.innerHTML = `
+      <span class="ing-check">${isSel ? '✦' : ''}</span>
+      <span class="ing-name">${ing}</span>
+      <button class="ing-fav" data-idx="${idx}">${isFav ? '★' : '☆'}</button>
+      <button class="ing-remove" data-idx="${idx}">✕</button>
+    `;
+    li.addEventListener('click', e => {
+      if (e.target.classList.contains('ing-remove') || e.target.classList.contains('ing-fav')) return;
+      toggleIngredient(ing);
+    });
+    li.querySelector('.ing-fav').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleFavorite(ing);
+    });
+    li.querySelector('.ing-remove').addEventListener('click', e => {
+      e.stopPropagation();
+      removeIngredient(idx);
+    });
+    ul.appendChild(li);
+  });
+  updateScrollNote();
+}
+
+function toggleFavorite(ing) {
+  const idx = S.favorites.indexOf(ing);
+  if (idx > -1) S.favorites.splice(idx, 1);
+  else S.favorites.push(ing);
+  saveFav();
+  renderIngList();
+}
+
+function toggleIngredient(ing) {
+  const idx = S.selected.indexOf(ing);
+  if (idx > -1) { S.selected.splice(idx, 1); }
+  else if (S.selected.length < 2) { S.selected.push(ing); }
+  renderIngList();
+}
+
+function updateScrollNote() {
+  const n = $('scroll-select-note');
+  if (!n) return;
+  if (S.selected.length === 0) n.textContent = 'choose one or two';
+  else if (S.selected.length === 1) n.textContent = S.selected[0] + ' — choose one more, or gather';
+  else n.textContent = S.selected[0] + ' & ' + S.selected[1];
+}
+
+function addIngredient() {
+  const input = $('add-ing-input');
+  const val = (input.value || '').trim();
+  if (!val) return;
+  const cap = val.charAt(0).toUpperCase() + val.slice(1);
+  if (!S.ingredients.includes(cap)) { S.ingredients.push(cap); saveIng(); }
+  input.value = '';
+  renderIngList();
+}
+
+function removeIngredient(idx) {
+  const ing = S.ingredients[idx];
+  S.ingredients.splice(idx, 1);
+  S.selected = S.selected.filter(i => i !== ing);
+  saveIng(); renderIngList();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GATHERING — drift animation (Gemini's rAF approach, positioned)
+   ─────────────────────────────────────────────────────────────────*/
+function gatherIngredients() {
+  if (S.selected.length === 0) {
+    $('scroll-select-note').textContent = 'choose at least one ingredient first';
+    return;
+  }
+  closeScroll();
+  S.ritualStep = 1;
+  updateRitualStatus();
+
+  // Initial faint glow
+  $('mortar-glow').style.opacity = '1';
+  $('mortar-glow').style.background =
+    'radial-gradient(ellipse 70% 80% at 50% 55%, rgba(140,200,80,0.1) 0%, transparent 80%)';
+
+  // Drift each selected ingredient into the mortar
+  const mortar = $('mortar-wrap');
+  const mortarRect = mortar.getBoundingClientRect();
+  // Target: bowl center (~50% x, ~45% y of mortar image)
+  const targetX = mortarRect.left + mortarRect.width * 0.50;
+  const targetY = mortarRect.top  + mortarRect.height * 0.44;
+
+  S.selected.forEach((ing, i) => {
+    setTimeout(() => driftIngredient(ing, targetX, targetY), i * 700);
+  });
+
+  // Show blend zone after drift settles
+  setTimeout(() => {
+    $('blend-arc-wrap').classList.add('visible');
+    burstParticles(8, 'rgba(196,145,90,0.45)');
+    if (S.soundOn) playDriftChime();
+  }, S.selected.length * 700 + 500);
+}
+
+function driftIngredient(text, targetX, targetY) {
+  const el = document.createElement('div');
+  el.className = 'drifting-ingredient';
+  el.textContent = text;
+
+  // Start: upper center-ish
+  const startX = window.innerWidth * 0.35 + Math.random() * window.innerWidth * 0.3;
+  const startY = window.innerHeight * 0.18 + Math.random() * 60;
+
+  el.style.left = startX + 'px';
+  el.style.top  = startY + 'px';
+  el.style.opacity = '0';
+  document.body.appendChild(el);
+
+  const dur = 90; // frames ~1.5s at 60fps
+  let frame = 0;
+
+  function step() {
+    frame++;
+    const t = frame / dur;
+    const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // easeInOut
+
+    const cx = startX + (targetX - startX) * ease;
+    const cy = startY + (targetY - startY) * Math.pow(t, 1.6);
+
+    el.style.left    = cx + 'px';
+    el.style.top     = cy + 'px';
+    el.style.opacity = t < 0.15 ? t/0.15 : t < 0.75 ? 1 : 1 - (t-0.75)/0.25;
+    el.style.transform = `scale(${1 - t * 0.3})`;
+
+    if (frame < dur) {
+      requestAnimationFrame(step);
+    } else {
+      el.remove();
+      burstParticles(12, 'rgba(180,220,100,0.6)');
+      if (S.soundOn) playDriftChime();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   POTION REVEAL
+   ─────────────────────────────────────────────────────────────────*/
+function revealPotion() {
+  S.ritualStep = 3;
+  $('blend-arc-wrap').classList.remove('visible');
+
+  const key = S.selected.length === 2 ? S.selected[0]+'+'+S.selected[1] : '';
+  S.potionName = S.selected.length === 1
+    ? S.selected[0]
+    : (COMBOS[key] || S.selected.join(' & '));
+
+  $('potion-title').textContent = S.potionName;
+  $('potion-sub').textContent   = S.selected.length === 2
+    ? `infusion of ${S.selected[0]} & ${S.selected[1]}`
+    : `a draught of ${S.selected[0]}`;
+
+  $('potion-title').classList.add('visible');
+  $('potion-sub').classList.add('visible');
+
+  // Max glow
+  $('mortar-glow').style.background =
+    'radial-gradient(ellipse 70% 80% at 50% 55%, rgba(140,200,80,0.58) 0%, transparent 80%)';
+
+  burstParticles(55, 'rgba(160,220,90,0.65)');
+  burstParticles(20, 'rgba(220,180,90,0.55)');
+
+  // Rename hint appears after shimmer settles
+  setTimeout(() => $('rename-hint').classList.add('visible'), 3000);
+
+  // Update journal formula display
+  $('j-formula').textContent = S.potionName;
+
+  // Formula history — newest first, max 3
+  S.formulaHistory = [S.potionName, ...S.formulaHistory.filter(n => n !== S.potionName)].slice(0, 3);
+  saveHist();
+
+  if (S.soundOn) playRevealChord();
+  updateRitualStatus();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RENAME
+   ─────────────────────────────────────────────────────────────────*/
+function openRename() {
+  $('rename-input').value = S.potionName;
+  $('rename-overlay').classList.add('open');
+  setTimeout(() => $('rename-input').focus(), 80);
+}
+function confirmRename() {
+  const v = ($('rename-input').value || '').trim();
+  if (v) {
+    S.potionName = v;
+    $('potion-title').textContent = v;
+    $('j-formula').textContent = v;
+  }
+  $('rename-overlay').classList.remove('open');
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   JOURNAL
+   ─────────────────────────────────────────────────────────────────*/
+function openJournal() {
+  renderJHistory();
+  $('j-formula').textContent = S.potionName || '—';
+  $('journal-overlay').classList.add('open');
+}
+
+function saveJournalEntry() {
+  const ctx   = ($('j-context').value || '').trim();
+  const title = ($('j-session-title').value || '').trim();
+  S.journal.unshift({
+    date:   new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }),
+    title:  title,
+    potion: S.potionName || '—',
+    ings:   [...S.selected],
+    ctx:    ctx,
+  });
+  saveJrn();
+  $('j-context').value = '';
+  $('j-session-title').value = '';
+  renderJHistory();
+  $('journal-overlay').classList.remove('open');
+}
+
+function renderJHistory() {
+  const c = $('j-history');
+  if (!c) return;
+  if (S.journal.length === 0) {
+    c.innerHTML = '<div class="j-empty">no sessions yet recorded</div>';
+    return;
+  }
+  c.innerHTML = '';
+  S.journal.forEach(e => {
+    const d = document.createElement('div');
+    d.className = 'j-entry';
+    d.innerHTML = `
+      <div class="j-entry-date">${e.date}</div>
+      ${e.title ? `<div class="j-entry-title">${e.title}</div>` : ''}
+      <div class="j-entry-potion">${e.potion}</div>
+      ${e.ings && e.ings.length ? `<div class="j-entry-ings">${e.ings.join(' · ')}</div>` : ''}
+      ${e.ctx ? `<div class="j-entry-ctx">${e.ctx}</div>` : ''}
+    `;
+    c.appendChild(d);
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LEAVE THE CABIN
+   ─────────────────────────────────────────────────────────────────*/
+function leaveTheCabin() {
+  if (fireRafId) { cancelAnimationFrame(fireRafId); fireRafId = null; }
+  goTo('screen-exit');
+  setTimeout(() => $('exit-darken').classList.add('go'), 100);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   WEB AUDIO
+   ─────────────────────────────────────────────────────────────────*/
+function ensureAudio() {
+  if (!S.audioCtx) {
+    S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    buildAmbient();
+  }
+  if (S.audioCtx.state === 'suspended') S.audioCtx.resume();
+}
+
+function buildAmbient() {
+  const ctx = S.audioCtx;
+
+  // ── Room tone (pink/brown noise) ─────────────────────────────
+  const bufLen = 4 * ctx.sampleRate;
+  const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i = 0; i < bufLen; i++) {
+    const w = Math.random() * 2 - 1;
+    b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
+    b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
+    b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
+    data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362) * 0.07;
+    b6 = w * 0.115926;
+  }
+  const roomSrc = ctx.createBufferSource();
+  roomSrc.buffer = buf; roomSrc.loop = true;
+  const roomLp = ctx.createBiquadFilter();
+  roomLp.type = 'lowpass'; roomLp.frequency.value = 320;
+  const roomGain = ctx.createGain();
+  roomGain.gain.value = 0;
+  roomSrc.connect(roomLp); roomLp.connect(roomGain); roomGain.connect(ctx.destination);
+  roomSrc.start(0);
+  S.ambientGain = roomGain;
+
+  // ── Slow LFO modulating room tone filter cutoff (280–380Hz, ~45s cycle) ──
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.frequency.value = 0.022;
+  lfoGain.gain.value = 50;
+  lfo.connect(lfoGain);
+  lfoGain.connect(roomLp.frequency);
+  lfo.start();
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   TRAIL AMBIENT AUDIO — wind, birdsong, creek (Screen 1 only)
+   ─────────────────────────────────────────────────────────────────*/
+function buildTrailAudio() {
+  let ctx;
+  try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
+  S.trailCtx = ctx;
+
+  const master = ctx.createGain();
+  master.gain.value = 0;
+  master.connect(ctx.destination);
+  S.trailGain = master;
+
+  // ── Wind: filtered white noise, slow tremolo ──
+  const windLen = 4 * ctx.sampleRate;
+  const windBuf = ctx.createBuffer(1, windLen, ctx.sampleRate);
+  const windData = windBuf.getChannelData(0);
+  for (let i = 0; i < windLen; i++) windData[i] = Math.random() * 2 - 1;
+  const windSrc = ctx.createBufferSource();
+  windSrc.buffer = windBuf; windSrc.loop = true;
+  const windLp = ctx.createBiquadFilter();
+  windLp.type = 'lowpass'; windLp.frequency.value = 280;
+  const windGain = ctx.createGain();
+  windGain.gain.value = 0.06;
+  const windLfo = ctx.createOscillator();
+  const windLfoGain = ctx.createGain();
+  windLfo.frequency.value = 0.08;
+  windLfoGain.gain.value = 0.06 * 0.3;
+  windLfo.connect(windLfoGain);
+  windLfoGain.connect(windGain.gain);
+  windSrc.connect(windLp); windLp.connect(windGain); windGain.connect(master);
+  windSrc.start(0); windLfo.start(0);
+
+  // ── Birdsong: two sine oscillators, random amplitude bursts ──
+  const birdGain = ctx.createGain();
+  birdGain.gain.value = 0.03;
+  birdGain.connect(master);
+
+  const bird1 = ctx.createOscillator();
+  bird1.type = 'sine'; bird1.frequency.value = 880;
+  const bird1Gain = ctx.createGain(); bird1Gain.gain.value = 0;
+  bird1.connect(bird1Gain); bird1Gain.connect(birdGain); bird1.start(0);
+
+  const bird2 = ctx.createOscillator();
+  bird2.type = 'sine'; bird2.frequency.value = 1320;
+  const bird2Gain = ctx.createGain(); bird2Gain.gain.value = 0;
+  bird2.connect(bird2Gain); bird2Gain.connect(birdGain); bird2.start(0);
+
+  function scheduleBird() {
+    const delay = 3 + Math.random() * 4; // 3–7s
+    setTimeout(() => {
+      const dur = 0.3 + Math.random() * 0.5; // 0.3–0.8s
+      const g = Math.random() < 0.5 ? bird1Gain : bird2Gain;
+      const now = ctx.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(1, now + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.05 + dur);
+      scheduleBird();
+    }, delay * 1000);
+  }
+  scheduleBird();
+
+  // ── Creek: bandpass filtered noise, subtle pitch drift ──
+  const creekLen = 4 * ctx.sampleRate;
+  const creekBuf = ctx.createBuffer(1, creekLen, ctx.sampleRate);
+  const creekData = creekBuf.getChannelData(0);
+  for (let i = 0; i < creekLen; i++) creekData[i] = Math.random() * 2 - 1;
+  const creekSrc = ctx.createBufferSource();
+  creekSrc.buffer = creekBuf; creekSrc.loop = true;
+  const creekBp = ctx.createBiquadFilter();
+  creekBp.type = 'bandpass'; creekBp.frequency.value = 600; creekBp.Q.value = 0.8;
+  const creekGain = ctx.createGain();
+  creekGain.gain.value = 0.04;
+  const creekLfo = ctx.createOscillator();
+  const creekLfoGain = ctx.createGain();
+  creekLfo.frequency.value = 0.05;
+  creekLfoGain.gain.value = 40;
+  creekLfo.connect(creekLfoGain);
+  creekLfoGain.connect(creekBp.frequency);
+  creekSrc.connect(creekBp); creekBp.connect(creekGain); creekGain.connect(master);
+  creekSrc.start(0); creekLfo.start(0);
+
+  // Resume on first user interaction (autoplay policy)
+  const resumeTrail = () => {
+    if (S.trailCtx && S.trailCtx.state === 'suspended') S.trailCtx.resume().catch(() => {});
+    document.removeEventListener('click', resumeTrail);
+    document.removeEventListener('touchstart', resumeTrail);
+  };
+  document.addEventListener('click', resumeTrail);
+  document.addEventListener('touchstart', resumeTrail);
+
+  if ($('screen-trail') && $('screen-trail').classList.contains('active')) fadeTrailAudioIn();
+}
+
+function fadeTrailAudioIn() {
+  if (!S.trailGain || !S.trailCtx) return;
+  if (S.trailCtx.state === 'suspended') S.trailCtx.resume().catch(() => {});
+  S.trailGain.gain.setTargetAtTime(1, S.trailCtx.currentTime, 1.5);
+}
+function fadeTrailAudioOut() {
+  if (!S.trailGain || !S.trailCtx) return;
+  S.trailGain.gain.setTargetAtTime(0, S.trailCtx.currentTime, 1.0);
+}
+
+function bellTone(freq, gainVal, dur) {
+  const ctx = S.audioCtx;
+  const osc = ctx.createOscillator();
+  const g   = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  g.gain.setValueAtTime(gainVal, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + dur + 0.05);
+}
+
+function strikeInstrument(type, x, y) {
+  // Ripple regardless of sound
+  spawnRipple(x, y);
+  ensureAudio();
+  if (navigator.vibrate) {
+    if (type === 'bowl')    navigator.vibrate(300);
+    if (type === 'koshi')   navigator.vibrate([40,30,40,30,40]);
+    if (type === 'tingsha') navigator.vibrate([50,60,50]);
+  }
+  if (!S.soundOn) return;
+  if (type === 'bowl') {
+    bellTone(220, 0.32, 9); bellTone(440, 0.16, 7.5);
+    bellTone(660, 0.09, 6); bellTone(880, 0.04, 5);
+  } else if (type === 'koshi') {
+    [523,659,784,1047,1319].forEach((f,i) => setTimeout(() => { ensureAudio(); bellTone(f, 0.14, 5); }, i*130));
+  } else if (type === 'tingsha') {
+    bellTone(1174, 0.42, 4); bellTone(2349, 0.16, 3); bellTone(3136, 0.07, 2);
+  }
+}
+
+function spawnRipple(x, y) {
+  const el = document.createElement('div');
+  el.className = 'ripple';
+  el.style.cssText = `left:${x}px; top:${y}px; width:18px; height:18px;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+function startBlendTone() {
+  ensureAudio();
+  const ctx = S.audioCtx;
+  S.blendToneOsc  = ctx.createOscillator();
+  S.blendToneGain = ctx.createGain();
+  S.blendToneOsc.type = 'sine';
+  S.blendToneOsc.frequency.setValueAtTime(160, ctx.currentTime);
+  S.blendToneOsc.frequency.linearRampToValueAtTime(340, ctx.currentTime + 6);
+  S.blendToneGain.gain.setValueAtTime(0, ctx.currentTime);
+  S.blendToneGain.gain.linearRampToValueAtTime(0.07, ctx.currentTime + 0.5);
+  S.blendToneOsc.connect(S.blendToneGain);
+  S.blendToneGain.connect(ctx.destination);
+  S.blendToneOsc.start();
+}
+function stopBlendTone() {
+  if (!S.blendToneOsc) return;
+  try {
+    const ctx = S.audioCtx;
+    S.blendToneGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.7);
+    S.blendToneOsc.stop(ctx.currentTime + 0.8);
+  } catch {}
+  S.blendToneOsc = null; S.blendToneGain = null;
+}
+
+function playDriftChime() {
+  ensureAudio();
+  bellTone(580, 0.12, 1.2);
+}
+function playRevealChord() {
+  ensureAudio();
+  [523,659,784,1047].forEach((f, i) => setTimeout(() => { ensureAudio(); bellTone(f, 0.2, 5.5); }, i * 200));
+}
+function playCrackle() {
+  ensureAudio();
+  const ctx = S.audioCtx;
+  const t = ctx.currentTime;
+  // Low thud — dense wood impact
+  const thudLen = Math.floor(ctx.sampleRate * 0.18);
+  const thudBuf = ctx.createBuffer(1, thudLen, ctx.sampleRate);
+  const thudData = thudBuf.getChannelData(0);
+  for (let i = 0; i < thudLen; i++)
+    thudData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (thudLen * 0.22));
+  const thudSrc = ctx.createBufferSource();
+  const thudLp  = ctx.createBiquadFilter();
+  const thudG   = ctx.createGain();
+  thudLp.type = 'lowpass'; thudLp.frequency.value = 200; thudLp.Q.value = 2.2;
+  thudG.gain.setValueAtTime(1.1, t);
+  thudG.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  thudSrc.buffer = thudBuf;
+  thudSrc.connect(thudLp); thudLp.connect(thudG); thudG.connect(ctx.destination);
+  thudSrc.start(t);
+  // Wood body resonance
+  const resonLen = Math.floor(ctx.sampleRate * 0.55);
+  const resonBuf = ctx.createBuffer(1, resonLen, ctx.sampleRate);
+  const resonData = resonBuf.getChannelData(0);
+  for (let i = 0; i < resonLen; i++)
+    resonData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (resonLen * 0.32));
+  const resonSrc = ctx.createBufferSource();
+  const resonBp  = ctx.createBiquadFilter();
+  const resonG   = ctx.createGain();
+  resonBp.type = 'bandpass'; resonBp.frequency.value = 280; resonBp.Q.value = 1.6;
+  resonG.gain.setValueAtTime(0.55, t + 0.025);
+  resonG.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+  resonSrc.buffer = resonBuf;
+  resonSrc.connect(resonBp); resonBp.connect(resonG); resonG.connect(ctx.destination);
+  resonSrc.start(t + 0.025);
+  // Brief high scatter (wood fibre snap)
+  const snapLen = Math.floor(ctx.sampleRate * 0.08);
+  const snapBuf = ctx.createBuffer(1, snapLen, ctx.sampleRate);
+  const snapData = snapBuf.getChannelData(0);
+  for (let i = 0; i < snapLen; i++) snapData[i] = (Math.random()*2-1)*0.09;
+  const snapSrc = ctx.createBufferSource();
+  const snapBp  = ctx.createBiquadFilter();
+  const snapG   = ctx.createGain();
+  snapBp.type = 'bandpass'; snapBp.frequency.value = 2400; snapBp.Q.value = 0.8;
+  snapG.gain.setValueAtTime(0.28, t);
+  snapG.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+  snapSrc.buffer = snapBuf;
+  snapSrc.connect(snapBp); snapBp.connect(snapG); snapG.connect(ctx.destination);
+  snapSrc.start(t);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FULLSCREEN
+   ─────────────────────────────────────────────────────────────────*/
+function initFullscreen() {
+  const btn = $('fullscreen-btn');
+  btn.addEventListener('click', () => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+    }
+  });
+  const onFsChange = () => {
+    const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    btn.innerHTML = active ? '&#x2715;' : '&#x26F6;';
+    btn.title = active ? 'Exit fullscreen' : 'Toggle fullscreen';
+  };
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BOOT
+   ─────────────────────────────────────────────────────────────────*/
+window.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  initBreathing();
+  initDoor();
+  initFullscreen();
+  buildTrailAudio(); // Trail ambient — starts faded, activates on Screen 1
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+});
+</script>
+<button id="fullscreen-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">&#x26F6;</button>
+
+</body>
+</html>

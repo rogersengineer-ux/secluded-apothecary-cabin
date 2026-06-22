@@ -161,7 +161,7 @@ html, body {
   transition: all 0.4s;
   letter-spacing: 0.04em;
 }
-.dur-btn:hover  { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.65); }
+.dur-btn:hover, .dur-btn:active  { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.65); }
 .dur-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(196,120,30,0.08); }
 
 #trail-timer {
@@ -186,7 +186,7 @@ html, body {
   letter-spacing: 0.05em;
   transition: all 0.5s;
 }
-#skip-btn:hover { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.7); }
+#skip-btn:hover, #skip-btn:active { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.7); }
 
 /* ══════════════════════════════════════════════════════════════
    SCREEN 2 — THE CABIN DOOR
@@ -210,7 +210,7 @@ html, body {
 .door-img {
   /* Full-bleed cover — fills viewport, door centered */
   position: absolute; inset: 0;
-  width: 100vw; height: 100vh;
+  width: 100vw; height: 100vh; height: 100dvh;
   object-fit: cover;
   object-position: center;
   display: block;
@@ -329,11 +329,12 @@ html, body {
 .cabin-top-bar {
   position: absolute;
   top: 0; left: 0; right: 0;
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 14px 18px;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
   z-index: 12;
 }
-.cabin-btn-group { display: flex; gap: 12px; align-items: center; }
+.cabin-btn-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; }
 
 .ghost-btn {
   background: rgba(6,3,2,0.55);
@@ -341,13 +342,13 @@ html, body {
   color: rgba(223,202,167,0.38);
   font-family: var(--ff-quill); font-style: italic;
   font-size: 0.82rem;
-  padding: 8px 16px;
+  padding: 11px 16px;
   cursor: pointer;
   letter-spacing: 0.04em;
   transition: all 0.45s;
   white-space: nowrap;
 }
-.ghost-btn:hover { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.78); }
+.ghost-btn:hover, .ghost-btn:active { border-color: rgba(196,145,90,0.5); color: rgba(223,202,167,0.78); }
 
 @keyframes scrollPulse {
   0%,100% { opacity: 0.55; } 50% { opacity: 1; }
@@ -356,9 +357,9 @@ html, body {
 /* ── Instrument bar ── */
 .instrument-bar {
   position: absolute;
-  bottom: 16px; left: 50%;
+  bottom: 10px; left: 50%;
   transform: translateX(-50%);
-  display: flex; gap: 6px; align-items: center;
+  display: flex; gap: 2px; align-items: center;
   z-index: 12;
   background: rgba(4,2,1,0.42);
   border: 1px solid rgba(196,145,90,0.08);
@@ -369,13 +370,13 @@ html, body {
   border: 1px solid rgba(196,145,90,0.18);
   color: rgba(223,202,167,0.55);
   font-family: var(--ff-quill); font-style: italic;
-  font-size: 1.05rem;
-  padding: 11px 28px;
+  font-size: 0.92rem;
+  padding: 12px 24px;
   cursor: pointer;
   transition: all 0.4s;
   letter-spacing: 0.06em;
 }
-.instr-btn:hover { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.82); }
+.instr-btn:hover, .instr-btn:active { border-color: rgba(196,145,90,0.45); color: rgba(223,202,167,0.82); }
 .instr-btn.ringing {
   color: rgba(220,180,100,0.92);
   border-color: rgba(196,145,90,0.65);
@@ -426,16 +427,15 @@ html, body {
 /* ── Mortar prop — EXACT native ratio 1024/1536 ── */
 #mortar-wrap {
   position: absolute;
-  bottom: 5%;
+  bottom: 3%;
   left: 50%;
   transform: translateX(-50%);
-  width: min(320px, 55vw);
+  width: min(260px, 76vw);
   aspect-ratio: 1024 / 1536;
   max-height: 80vh;
   z-index: 4;
 }
 @media (max-height: 680px) { #mortar-wrap { width: min(220px, 44vw); } }
-@media (max-width: 480px)  { #mortar-wrap { width: min(260px, 76vw); bottom: 3%; } }
 
 #mortar-bg {
   position: absolute; inset: 0;
@@ -531,7 +531,7 @@ html, body {
   opacity: 0; transition: opacity 1s ease 3.5s, color 0.3s;
 }
 #rename-hint.visible { opacity: 1; }
-#rename-hint:hover { color: rgba(196,145,90,0.75); }
+#rename-hint:hover, #rename-hint:active { color: rgba(196,145,90,0.75); }
 
 /* Blend progress arc shown above mortar zone */
 #blend-arc-wrap {
@@ -572,7 +572,7 @@ html, body {
   transition: all 0.5s;
   animation: scrollPulse 5s ease-in-out infinite;
 }
-#scroll-trigger:hover { color: rgba(196,145,90,0.75); animation: none; }
+#scroll-trigger:hover, #scroll-trigger:active { color: rgba(196,145,90,0.75); animation: none; }
 
 /* Formula history — faded past workings line in scroll overlay */
 #formula-history {
@@ -709,6 +709,7 @@ html, body {
 
 .ing-row {
   display: flex; align-items: center; justify-content: space-between;
+  min-height: 44px;
   padding: 9px 6px;
   font-family: var(--ff-quill); font-style: italic;
   font-size: 1.25rem;
@@ -717,7 +718,7 @@ html, body {
   cursor: pointer;
   transition: all 0.28s;
 }
-.ing-row:hover { background: rgba(80,52,18,0.05); color: rgba(28,18,12,0.95); }
+.ing-row:hover, .ing-row:active { background: rgba(80,52,18,0.05); color: rgba(28,18,12,0.95); }
 .ing-row.selected {
   color: rgba(120,58,8,0.95);
   background: rgba(196,120,30,0.1);
@@ -740,22 +741,26 @@ html, body {
 .ing-fav {
   font-size: 0.95rem;
   color: rgba(80,52,18,0.28);
-  cursor: pointer; padding: 2px 6px;
+  cursor: pointer; padding: 10px 12px;
+  min-width: 44px; min-height: 44px;
   background: none; border: none;
   transition: color 0.2s, transform 0.2s;
   flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
 }
-.ing-fav:hover { color: rgba(196,120,30,0.75); transform: scale(1.15); }
+.ing-fav:hover, .ing-fav:active { color: rgba(196,120,30,0.75); transform: scale(1.15); }
 .ing-row.fav .ing-fav { color: var(--amber); }
 .ing-remove {
   font-size: 0.78rem;
   color: rgba(80,52,18,0.22);
-  cursor: pointer; padding: 2px 6px;
+  cursor: pointer; padding: 10px 12px;
+  min-width: 44px; min-height: 44px;
   background: none; border: none;
   transition: color 0.2s;
   flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
 }
-.ing-remove:hover { color: rgba(160,40,20,0.65); }
+.ing-remove:hover, .ing-remove:active { color: rgba(160,40,20,0.65); }
 
 #scroll-select-note {
   font-family: var(--ff-quill); font-style: italic;
@@ -791,7 +796,7 @@ html, body {
   background: none; border: 1px solid rgba(80,52,18,0.24);
   padding: 5px 12px; cursor: pointer; transition: all 0.25s;
 }
-.scroll-add-row button:hover { color: rgba(28,18,12,0.9); background: rgba(80,52,18,0.06); }
+.scroll-add-row button:hover, .scroll-add-row button:active { color: rgba(28,18,12,0.9); background: rgba(80,52,18,0.06); }
 
 .scroll-actions {
   display: flex; justify-content: space-between; align-items: center;
@@ -804,7 +809,7 @@ html, body {
   cursor: pointer; letter-spacing: 0.04em;
   transition: color 0.25s;
 }
-.scroll-act-btn:hover { color: rgba(28,18,12,0.85); }
+.scroll-act-btn:hover, .scroll-act-btn:active { color: rgba(28,18,12,0.85); }
 .scroll-act-btn.primary {
   background: rgba(28,18,12,0.88);
   color: rgba(241,228,195,0.9);
@@ -812,7 +817,7 @@ html, body {
   padding: 9px 22px;
   font-size: 0.88rem;
 }
-.scroll-act-btn.primary:hover { background: rgba(28,18,12,1); }
+.scroll-act-btn.primary:hover, .scroll-act-btn.primary:active { background: rgba(28,18,12,1); }
 
 /* ══════════════════════════════════════════════════════════════
    JOURNAL OVERLAY
@@ -822,9 +827,11 @@ html, body {
   border: 8px solid #1a0d04;
   border-radius: 2px 4px 4px 2px;
   width: min(700px, 96vw);
-  max-height: 82vh;
+  max-height: 88vh;
+  max-height: 88dvh;
   box-shadow: 0 30px 80px rgba(0,0,0,0.92);
   display: flex;
+  flex-direction: column;
   position: relative;
   overflow: hidden;
 }
@@ -832,7 +839,7 @@ html, body {
   flex: 1;
   background: radial-gradient(circle at 50% 40%, #faf3e0 25%, #e8d4aa 78%, #d9c29a 100%);
   color: #1c120c;
-  padding: 32px 30px;
+  padding: 22px 18px;
   overflow-y: auto;
   scrollbar-width: none;
   display: flex; flex-direction: column;
@@ -845,12 +852,12 @@ html, body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
   pointer-events: none; z-index: 0;
 }
-.j-page-left  { border-right: 2px solid rgba(0,0,0,0.16); box-shadow: inset -14px 0 24px rgba(0,0,0,0.07); }
+.j-page-left  { border-right: none; border-bottom: 2px solid rgba(0,0,0,0.16); box-shadow: inset 0 -14px 24px rgba(0,0,0,0.07); max-height: 40vh; max-height: 40dvh; }
 .j-page-right { box-shadow: inset 14px 0 24px rgba(0,0,0,0.06); }
 .j-content { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; }
 .j-title {
   font-family: var(--ff-quill); font-style: italic;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: rgba(28,18,12,0.72);
   margin-bottom: 20px;
   border-bottom: 1px dashed rgba(0,0,0,0.14);
@@ -920,7 +927,7 @@ html, body {
   margin-top: 12px;
   transition: background 0.3s;
 }
-.j-save-btn:hover { background: rgba(28,18,12,1); }
+.j-save-btn:hover, .j-save-btn:active { background: rgba(28,18,12,1); }
 .j-close {
   font-family: var(--ff-quill); font-style: italic;
   font-size: 0.78rem;
@@ -930,7 +937,7 @@ html, body {
   text-underline-offset: 2px;
   transition: color 0.25s;
 }
-.j-close:hover { color: rgba(80,52,18,0.8); }
+.j-close:hover, .j-close:active { color: rgba(80,52,18,0.8); }
 
 /* ══════════════════════════════════════════════════════════════
    RENAME MODAL
@@ -980,7 +987,7 @@ html, body {
   background: none; border: none; cursor: pointer;
   transition: color 0.25s;
 }
-.rename-btn:hover { color: rgba(28,18,12,0.92); }
+.rename-btn:hover, .rename-btn:active { color: rgba(28,18,12,0.92); }
 
 /* ── Fullscreen button ── */
 #fullscreen-btn {
@@ -998,7 +1005,7 @@ html, body {
   transition: all 0.35s;
   padding: 0;
 }
-#fullscreen-btn:hover { color: rgba(196,145,90,0.88); border-color: rgba(196,145,90,0.48); }
+#fullscreen-btn:hover, #fullscreen-btn:active { color: rgba(196,145,90,0.88); border-color: rgba(196,145,90,0.48); }
 
 /* ── Film grain always on top ── */
 body::after {
@@ -1012,17 +1019,18 @@ body::after {
 body { animation: appBoot 1.8s ease; }
 @keyframes appBoot { from { opacity: 0; } to { opacity: 1; } }
 
-@media (max-width: 480px) {
-  .instrument-bar { bottom: 10px; gap: 2px; }
-  .instr-btn { padding: 12px 24px; font-size: 0.92rem; }
-  .j-page { padding: 22px 18px; }
-  .j-title { font-size: 1.2rem; }
-  .journal-book-wrap { flex-direction: column; max-height: 88vh; }
-  .j-page-left { border-right: none; border-bottom: 2px solid rgba(0,0,0,0.16); max-height: 40vh; }
-  /* Cabin top bar: two groups stacked centred on narrow screens */
-  .cabin-top-bar { padding: 8px 12px; flex-direction: column; align-items: center; gap: 8px; }
-  .cabin-btn-group { gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .ghost-btn { font-size: 0.82rem; padding: 9px 14px; }
+/* ── Desktop enhancements: wider layout, larger text, standard padding ── */
+@media (min-width: 481px) {
+  .instrument-bar { bottom: 16px; gap: 6px; }
+  .instr-btn { padding: 11px 28px; font-size: 1.05rem; }
+  .j-page { padding: 32px 30px; }
+  .j-title { font-size: 1.5rem; }
+  .journal-book-wrap { flex-direction: row; max-height: 82vh; max-height: 82dvh; }
+  .j-page-left { border-right: 2px solid rgba(0,0,0,0.16); border-bottom: none; box-shadow: inset -14px 0 24px rgba(0,0,0,0.07); max-height: unset; }
+  .cabin-top-bar { padding: 14px 18px; flex-direction: row; align-items: flex-start; gap: 0; }
+  .cabin-btn-group { gap: 12px; flex-wrap: nowrap; justify-content: flex-start; }
+  .ghost-btn { padding: 8px 16px; }
+  #mortar-wrap { width: min(320px, 55vw); bottom: 5%; }
 }
 
 /* ── Mobile portrait: use dedicated portrait background ── */
